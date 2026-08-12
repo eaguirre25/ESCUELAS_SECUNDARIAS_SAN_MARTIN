@@ -33,14 +33,17 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          cp data-patch.js _site/data-patch.js
           cp sample-enhancement.js _site/sample-enhancement.js
+          cp sample-sections.js _site/sample-sections.js
           cp table-enhancement.js _site/table-enhancement.js
+          cp table-turnos.js _site/table-turnos.js
           python - <<'PY'
           from pathlib import Path
           p = Path('_site/index.html')
           s = p.read_text()
           s = s.replace("if(q&&!(`${s.nombre} ${s.cue} ${s.localidad} ${s.calle}`).toLowerCase().includes(q)))return;", "if(q && !(`${s.nombre} ${s.cue} ${s.localidad} ${s.calle}`.toLowerCase().includes(q)))return;")
-          inject = '''<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>\n<script src="sample-enhancement.js"></script>\n<script src="table-enhancement.js"></script>\n'''
+          inject = '''<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>\n<script src="data-patch.js"></script>\n<script src="sample-enhancement.js"></script>\n<script src="sample-sections.js"></script>\n<script src="table-enhancement.js"></script>\n<script src="table-turnos.js"></script>\n'''
           s = s.replace('</body>', inject + '</body>')
           p.write_text(s)
           PY
