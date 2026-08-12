@@ -29,6 +29,15 @@ jobs:
         run: |
           mkdir _site
           cp index.html _site/index.html
+          cp sample-enhancement.js _site/sample-enhancement.js
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('_site/index.html')
+          s = p.read_text()
+          s = s.replace("if(q&&!(`${s.nombre} ${s.cue} ${s.localidad} ${s.calle}`).toLowerCase().includes(q)))return;", "if(q && !(`${s.nombre} ${s.cue} ${s.localidad} ${s.calle}`.toLowerCase().includes(q)))return;")
+          s = s.replace('</body>', '<script src="sample-enhancement.js"></script>\n</body>')
+          p.write_text(s)
+          PY
       - name: Subir artefacto
         uses: actions/upload-pages-artifact@v3
         with:
