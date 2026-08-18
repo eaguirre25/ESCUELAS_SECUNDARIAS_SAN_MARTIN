@@ -1,5 +1,5 @@
 const ORIGINAL = Array.isArray(window.SCHOOLS_DATA) ? window.SCHOOLS_DATA : [];
-const STORE_KEY = 'ees-sm-edits-v4';
+const STORE_KEY = 'ees-sm-edits-v5';
 const SAMPLE_KEY = 'ees-sm-sample-v2';
 const PERCENT_KEY = 'ees-sm-percent-v1';
 const managementColors = { Estatal: '#48cae4', Privada: '#ef709d' };
@@ -80,15 +80,31 @@ function radius(matricula) {
 
 function popup(school) {
   const managementClass = school.gestion === 'Estatal' ? 'state' : 'private';
+  const disadvantageTag = String(school.desfavorabilidad) === '1' ? '<span class="tag disadvantage">Desfavorabilidad 1</span>' : '';
   return `<div class="pop-title">${esc(school.nombre)}</div>
     <div class="pop-sub">${esc(school.calle)} ${esc(school.nro)} · ${esc(school.localidad)}</div>
-    <div class="tags"><span class="tag ${managementClass}">${esc(school.gestion)}</span><span class="tag">${esc(school.modalidad)}</span><span class="tag">Categoría ${esc(school.categoria)}</span></div>
+    <div class="tags"><span class="tag ${managementClass}">${esc(school.gestion)}</span><span class="tag">${esc(school.modalidad)}</span><span class="tag">Categoría ${esc(school.categoria)}</span>${disadvantageTag}</div>
     <div class="pop-grid">
       <div class="pop-kpi"><b>${fmt(school.matricula)}</b><span>Matrícula</span></div>
       <div class="pop-kpi"><b>${fmt(school.secciones)}</b><span>Secciones</span></div>
       <div class="pop-kpi"><b>${fmt(school.varones)}</b><span>Varones</span></div>
       <div class="pop-kpi"><b>${fmt(school.mujeres)}</b><span>Mujeres</span></div>
     </div><div class="cue">CUE ${esc(school.cue)} · ${esc(school.periodo)}</div>`;
+}
+
+function categoryAbbreviation(category) {
+  return { Primera: '1ª', Segunda: '2ª', Tercera: '3ª', 'S/Datos': 'S/D' }[category] || 'S/D';
+}
+
+function mapBadge(school) {
+  const category = categoryAbbreviation(school.categoria);
+  const disadvantage = String(school.desfavorabilidad) === '1' ? '<span class="map-badge-disadvantage">D1</span>' : '';
+  return L.divIcon({
+    className: 'map-badge-wrapper',
+    html: `<span class="map-badge-category">${category}</span>${disadvantage}`,
+    iconSize: [42, 18],
+    iconAnchor: [-4, 18]
+  });
 }
 
 function mapFiltered() {
@@ -123,13 +139,15 @@ function renderMap(override = null) {
   items.forEach(school => {
     if (!validCoordinates(school)) return;
     const selected = sample.has(school.cue);
-    L.circleMarker([Number(school.lat), Number(school.lon)], {
+    const coordinates = [Number(school.lat), Number(school.lon)];
+    L.circleMarker(coordinates, {
       radius: radius(school.matricula) + (selected ? 2 : 0),
       color: selected ? '#ffffff' : '#06101c',
       weight: selected ? 3 : 1.3,
       fillColor: managementColors[school.gestion] || '#52b788',
       fillOpacity: .88
-    }).bindPopup(popup(school)).bindTooltip(`${school.nombre} · ${school.gestion} · ${fmt(school.matricula)} estudiantes`, { direction: 'top' }).addTo(layer);
+    }).bindPopup(popup(school)).bindTooltip(`${school.nombre} · ${school.gestion} · ${fmt(school.matricula)} estudiantes · Categoría ${school.categoria}${String(school.desfavorabilidad) === '1' ? ' · Desfavorabilidad 1' : ''}`, { direction: 'top' }).addTo(layer);
+    L.marker(coordinates, { icon: mapBadge(school), interactive: false, keyboard: false }).addTo(layer);
   });
   document.getElementById('countSchools').textContent = items.length;
   document.getElementById('countStudents').textContent = fmt(totalEnrollment(items));
@@ -175,6 +193,35 @@ const tableFields = [
   ['categoria', 'text'], ['subvencion', 'text'], ['secciones', 'number'], ['matricula', 'number'], ['varones', 'number'], ['mujeres', 'number'],
   ['periodo', 'text'], ['lat', 'float'], ['lon', 'float']
 ];
+const numericTableFields = new Set(['secciones', 'matricula', 'varones', 'mujeres', 'lat', 'lon']);
+let tableSort = { key: 'nombre', direction: 'asc' };
+
+function compareValues(left, right, key, numeric = false) {
+  const direction = key.direction === 'asc' ? 1 : -1;
+  if (numeric) return (Number(left || 0) - Number(right || 0)) * direction;
+  return String(left ?? '').localeCompare(String(right ?? ''), 'es', { numeric: true, sensitivity: 'base' }) * direction;
+}
+
+function configureTableSorting() {
+  const keys = ['nombre', ...tableFields.map(([key]) => key)];
+  document.querySelectorAll('#editTable thead th').forEach((header, index) => {
+    const key = keys[index];
+    header.classList.add('sortable');
+    header.dataset.sortKey = key;
+    header.tabIndex = 0;
+    const activate = () => {
+      tableSort = { key, direction: tableSort.key === key && tableSort.direction === 'asc' ? 'desc' : 'asc' };
+      renderTable();
+    };
+    header.addEventListener('click', activate);
+    header.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        activate();
+      }
+    });
+  });
+}
 
 function tableFiltered() {
   const query = document.getElementById('searchTable').value.trim().toLowerCase();
@@ -183,12 +230,18 @@ function tableFiltered() {
   return schools.map((school, index) => ({ school, index })).filter(({ school }) => {
     const haystack = `${school.nombre} ${school.cue} ${school.localidad} ${school.calle}`.toLowerCase();
     return haystack.includes(query) && (!management || school.gestion === management) && (!modality || school.modalidad === modality);
-  });
+  }).sort((left, right) => compareValues(left.school[tableSort.key], right.school[tableSort.key], tableSort, numericTableFields.has(tableSort.key)));
 }
 
 function renderTable() {
   const body = document.querySelector('#editTable tbody');
   body.innerHTML = '';
+  document.querySelectorAll('#editTable thead th').forEach(header => {
+    const active = header.dataset.sortKey === tableSort.key;
+    header.classList.toggle('sort-active', active);
+    header.dataset.direction = active ? tableSort.direction : '';
+    header.setAttribute('aria-sort', active ? (tableSort.direction === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
   tableFiltered().forEach(({ school, index }) => {
     const row = document.createElement('tr');
     const name = document.createElement('td');
@@ -266,18 +319,54 @@ function sampleVisible(management) {
   return schools.filter(school => school.gestion === management && `${school.nombre} ${school.cue} ${school.localidad}`.toLowerCase().includes(query));
 }
 
-function sampleHeader() {
+const sampleSort = {
+  Estatal: { key: 'nombre', direction: 'asc' },
+  Privada: { key: 'nombre', direction: 'asc' }
+};
+
+function sampleSortValue(school, key) {
+  if (key === 'share') return totalEnrollment() ? Number(school.matricula || 0) / totalEnrollment() : 0;
+  if (key === 'sample') return sampleSize(school);
+  return school[key];
+}
+
+function sortedSampleVisible(management) {
+  const sort = sampleSort[management];
+  return sampleVisible(management).sort((left, right) => compareValues(sampleSortValue(left, sort.key), sampleSortValue(right, sort.key), sort, sort.key !== 'nombre'));
+}
+
+function sampleHeader(management) {
   const header = document.createElement('div');
   header.className = 'sample-head';
-  header.innerHTML = '<span></span><span>Escuela</span><span>Matrícula</span><span>% del total</span><span>A encuestar</span>';
+  header.appendChild(document.createElement('span'));
+  [
+    ['nombre', 'Escuela'],
+    ['matricula', 'Matrícula'],
+    ['share', '% del total'],
+    ['sample', 'A encuestar']
+  ].forEach(([key, label]) => {
+    const button = document.createElement('button');
+    const active = sampleSort[management].key === key;
+    const direction = active ? sampleSort[management].direction : '';
+    button.type = 'button';
+    button.className = `sort-button${active ? ' active' : ''}`;
+    button.innerHTML = `${label}<span aria-hidden="true">${direction === 'asc' ? '▲' : direction === 'desc' ? '▼' : '↕'}</span>`;
+    button.title = `Ordenar ${label.toLowerCase()} de ${direction === 'asc' ? 'mayor a menor' : 'menor a mayor'}`;
+    button.setAttribute('aria-label', button.title);
+    button.addEventListener('click', () => {
+      sampleSort[management] = { key, direction: active && direction === 'asc' ? 'desc' : 'asc' };
+      renderSampleRows();
+    });
+    header.appendChild(button);
+  });
   return header;
 }
 
 function renderManagementRows(management, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = '';
-  container.appendChild(sampleHeader());
-  sampleVisible(management).forEach(school => {
+  container.appendChild(sampleHeader(management));
+  sortedSampleVisible(management).forEach(school => {
     const row = document.createElement('label');
     row.className = `sample-row${sample.has(school.cue) ? ' selected' : ''}`;
     const checkbox = document.createElement('input');
@@ -373,6 +462,8 @@ document.querySelectorAll('[data-clear]').forEach(button => button.addEventListe
   renderSampleRows();
   renderMap();
 }));
+
+configureTableSorting();
 
 renderTable();
 renderSampleRows();
