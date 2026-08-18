@@ -16,8 +16,8 @@
       if (n && turnosPorNumero[n]) s.turnos = turnosPorNumero[n];
       if (n === 38) {
         s.matricula = 280;
-        s.varones = 148;
-        s.mujeres = 133;
+        s.varones = 133;
+        s.mujeres = 147;
         s.secciones = 13;
       }
     });
