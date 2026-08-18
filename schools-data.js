@@ -1139,16 +1139,16 @@ window.SCHOOLS_DATA=[
     "desfavorabilidad": "0",
     "categoria": "Primera",
     "secciones": 0,
-    "matricula": 0,
-    "varones": 0,
-    "mujeres": 0,
+    "matricula": 793,
+    "varones": 632,
+    "mujeres": 161,
     "periodo": "Nueva",
     "lat": -34.5778489,
     "lon": -58.53640251,
     "turnos": "",
     "subvencion": "Oficial",
     "dependencia": "Dirección Provincial de Educación Técnico Profesional",
-    "source": "Modalidad Técnico Profesional Secundaria - Gestión estatal 18-08-2026.xlsx"
+    "source": "Datos institucionales: Modalidad Técnico Profesional Secundaria - Gestión estatal 18-08-2026.xlsx; matrícula informada por el usuario 18-08-2026"
   },
   {
     "cue": "601624",
