@@ -269,7 +269,7 @@ function sampleVisible(management) {
 function sampleHeader() {
   const header = document.createElement('div');
   header.className = 'sample-head';
-  header.innerHTML = '<span></span><span>Escuela</span><span>Matrícula</span><span>A encuestar</span>';
+  header.innerHTML = '<span></span><span>Escuela</span><span>Matrícula</span><span>% del total</span><span>A encuestar</span>';
   return header;
 }
 
@@ -295,10 +295,16 @@ function renderManagementRows(management, containerId) {
     const enrollment = document.createElement('div');
     enrollment.className = 'enrollment';
     enrollment.textContent = fmt(school.matricula);
+    const enrollmentShare = document.createElement('div');
+    enrollmentShare.className = 'enrollment-share';
+    const universeEnrollment = totalEnrollment();
+    const share = universeEnrollment ? (Number(school.matricula || 0) / universeEnrollment) * 100 : 0;
+    enrollmentShare.textContent = `${share.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    enrollmentShare.title = 'Porcentaje sobre la matrícula total de todas las escuelas';
     const automatic = document.createElement('div');
     automatic.className = 'auto-sample';
     automatic.textContent = fmt(sampleSize(school));
-    row.append(checkbox, identity, enrollment, automatic);
+    row.append(checkbox, identity, enrollment, enrollmentShare, automatic);
     container.appendChild(row);
   });
 }
