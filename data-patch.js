@@ -9,8 +9,16 @@
     return m ? Number(m[1]) : null;
   };
 
+  const limpiarSiemens = arr => {
+    if (!Array.isArray(arr)) return;
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (/SIEMENS/i.test(String(arr[i]?.nombre || ''))) arr.splice(i, 1);
+    }
+  };
+
   const apply = arr => {
     if (!Array.isArray(arr)) return;
+    limpiarSiemens(arr);
     arr.forEach(s => {
       const n = numeroEscuela(s.nombre);
       if (n && turnosPorNumero[n]) s.turnos = turnosPorNumero[n];
@@ -20,6 +28,7 @@
         s.mujeres = 147;
         s.secciones = 13;
       }
+      if (Number(s.matricula) === 0) s.matricula = null;
     });
   };
 
