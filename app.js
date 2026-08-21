@@ -67,6 +67,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 const layer = L.layerGroup().addTo(map);
+const badgeLayer = L.layerGroup().addTo(map);
+let visibleMapItems = [];
 
 function validCoordinates(school) {
   return Number.isFinite(Number(school.lat)) && Number.isFinite(Number(school.lon));
@@ -114,6 +116,19 @@ function mapBadge(school) {
   });
 }
 
+function renderMapBadges() {
+  badgeLayer.clearLayers();
+  if (map.getZoom() < 14) return;
+  visibleMapItems.forEach(school => {
+    if (!validCoordinates(school)) return;
+    L.marker([Number(school.lat), Number(school.lon)], {
+      icon: mapBadge(school),
+      interactive: false,
+      keyboard: false
+    }).addTo(badgeLayer);
+  });
+}
+
 function mapFiltered() {
   const query = document.getElementById('searchMap').value.trim().toLowerCase();
   const locality = document.getElementById('localidad').value;
@@ -143,6 +158,7 @@ function populateLocalities() {
 function renderMap(override = null) {
   layer.clearLayers();
   const items = override || mapFiltered();
+  visibleMapItems = items;
   items.forEach(school => {
     if (!validCoordinates(school)) return;
     const selected = sample.has(school.cue);
@@ -154,13 +170,15 @@ function renderMap(override = null) {
       fillColor: managementColors[school.gestion] || '#52b788',
       fillOpacity: .88
     }).bindPopup(popup(school)).bindTooltip(`${school.nombre} · ${school.gestion} · ${fmt(school.matricula)} estudiantes · Categoría ${school.categoria}${String(school.desfavorabilidad) === '1' ? ' · Desfavorabilidad 1' : ''}`, { direction: 'top' }).addTo(layer);
-    L.marker(coordinates, { icon: mapBadge(school), interactive: false, keyboard: false }).addTo(layer);
   });
+  renderMapBadges();
   document.getElementById('countSchools').textContent = items.length;
   document.getElementById('countStudents').textContent = fmt(totalEnrollment(items));
   document.getElementById('countState').textContent = items.filter(school => school.gestion === 'Estatal').length;
   document.getElementById('countPrivate').textContent = items.filter(school => school.gestion === 'Privada').length;
 }
+
+map.on('zoomend', renderMapBadges);
 
 populateLocalities();
 renderMap();

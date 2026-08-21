@@ -213,7 +213,6 @@
     const logic=document.querySelector('input[name="selLogic"]:checked')?.value || 'AND';
     currentFiltered = !tests.length ? DATA.slice() : DATA.filter(d => logic==='AND' ? tests.every(t=>t(d)) : tests.some(t=>t(d)));
     document.getElementById('criteriaText').textContent = labels.length ? `${logic==='AND'?'Todos':'Alguno'}: ${labels.join(' · ')}` : 'Sin filtros activos.';
-    renderResults();
   }
 
   function renderResults(){
@@ -272,7 +271,6 @@
     });
     document.getElementById('socioMetric')?.addEventListener('change',refreshSocioMap);
     document.getElementById('socioSubset')?.addEventListener('change',refreshSocioMap);
-    renderResults();
   }
 
   const palette = {
