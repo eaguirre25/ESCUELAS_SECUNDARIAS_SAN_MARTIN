@@ -116,6 +116,11 @@
     completarMatriculas();
     const selectorScript = document.createElement('script');
     selectorScript.src = 'survey-selector.js';
+    selectorScript.onload = () => {
+      const enhancementScript = document.createElement('script');
+      enhancementScript.src = 'selector-enhancements.js';
+      document.body.appendChild(enhancementScript);
+    };
     document.body.appendChild(selectorScript);
   };
   document.body.appendChild(dataScript);
