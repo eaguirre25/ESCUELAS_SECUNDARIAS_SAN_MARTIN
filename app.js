@@ -7,6 +7,13 @@ const fmt = value => Number(value || 0).toLocaleString('es-AR');
 const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
 }[character]));
+const debounce = (callback, delay = 180) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => callback(...args), delay);
+  };
+};
 
 let schools = JSON.parse(JSON.stringify(ORIGINAL));
 try {
@@ -54,7 +61,7 @@ document.querySelectorAll('.tabbtn').forEach(button => button.addEventListener('
   if (button.dataset.view === 'sampleView') renderSampleRows();
 }));
 
-const map = L.map('map', { zoomControl: true });
+const map = L.map('map', { zoomControl: true, preferCanvas: true });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '© OpenStreetMap contributors'
@@ -71,7 +78,7 @@ function boundsFor(items) {
 
 function fitItems(items, maxZoom = 15) {
   const bounds = boundsFor(items);
-  if (bounds.isValid()) map.fitBounds(bounds.pad(.14), { maxZoom });
+  if (bounds.isValid()) map.fitBounds(bounds.pad(.14), { maxZoom, animate: false });
 }
 
 function radius(matricula) {
@@ -159,13 +166,17 @@ populateLocalities();
 renderMap();
 fitItems(schools);
 
+const refreshMapFilters = () => {
+  const items = mapFiltered();
+  renderMap(items);
+  if (items.length) fitItems(items);
+};
+const refreshMapFiltersDebounced = debounce(refreshMapFilters);
+
 ['searchMap', 'localidad', 'modalidad', 'showState', 'showPrivate'].forEach(id => {
   const element = document.getElementById(id);
-  element.addEventListener(element.tagName === 'INPUT' && element.type === 'search' ? 'input' : 'change', () => {
-    const items = mapFiltered();
-    renderMap(items);
-    if (items.length) fitItems(items);
-  });
+  const isSearch = element.tagName === 'INPUT' && element.type === 'search';
+  element.addEventListener(isSearch ? 'input' : 'change', isSearch ? refreshMapFiltersDebounced : refreshMapFilters);
 });
 
 document.getElementById('resetMap').addEventListener('click', () => {
@@ -285,7 +296,7 @@ function renderTable() {
 
 ['searchTable', 'tableManagement', 'tableModality'].forEach(id => {
   const element = document.getElementById(id);
-  element.addEventListener(element.tagName === 'INPUT' ? 'input' : 'change', renderTable);
+  element.addEventListener(element.tagName === 'INPUT' ? 'input' : 'change', element.tagName === 'INPUT' ? debounce(renderTable) : renderTable);
 });
 
 document.getElementById('resetEdits').addEventListener('click', () => {
@@ -366,6 +377,7 @@ function renderManagementRows(management, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = '';
   container.appendChild(sampleHeader(management));
+  const universeEnrollment = totalEnrollment();
   sortedSampleVisible(management).forEach(school => {
     const row = document.createElement('label');
     row.className = `sample-row${sample.has(school.cue) ? ' selected' : ''}`;
@@ -386,7 +398,6 @@ function renderManagementRows(management, containerId) {
     enrollment.textContent = fmt(school.matricula);
     const enrollmentShare = document.createElement('div');
     enrollmentShare.className = 'enrollment-share';
-    const universeEnrollment = totalEnrollment();
     const share = universeEnrollment ? (Number(school.matricula || 0) / universeEnrollment) * 100 : 0;
     enrollmentShare.textContent = `${share.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
     enrollmentShare.title = 'Porcentaje sobre la matrícula total de todas las escuelas';
@@ -437,10 +448,10 @@ function updateSampleSummary() {
   document.getElementById('coverageBar').style.width = Math.min(100, coverage) + '%';
 }
 
-document.getElementById('searchSample').addEventListener('input', renderSampleRows);
+document.getElementById('searchSample').addEventListener('input', debounce(renderSampleRows));
 percentInput.addEventListener('input', () => {
   localStorage.setItem(PERCENT_KEY, percentInput.value);
-  renderSampleRows();
+  debounceRenderSampleRows();
 });
 percentInput.addEventListener('change', () => {
   const normalized = parsePercent().toLocaleString('es-AR', { maximumFractionDigits: 2 });
@@ -464,6 +475,4 @@ document.querySelectorAll('[data-clear]').forEach(button => button.addEventListe
 }));
 
 configureTableSorting();
-
-renderTable();
-renderSampleRows();
+const debounceRenderSampleRows = debounce(renderSampleRows);

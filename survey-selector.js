@@ -5,7 +5,13 @@
   const F = ['clave','escuela','localidad','categoria','turnos','desfavorabilidad','secciones','matricula','pct_nbi','tercil_nbi','pct_hacinamiento','ivse','tercil_ivse','renabap250','pct_renabap250','encuesta2011','encuesta2021','pct_trabaja_2021','pct_cerca_2021','n_evidencias','perfil_convergencia','lat','lon'];
   const DATA = raw.map(row => Object.fromEntries(F.map((k,i)=>[k,row[i]])));
   const STORAGE = 'ees-sm-preseleccion-v1';
-  const selected = new Set(JSON.parse(localStorage.getItem(STORAGE) || '[]'));
+  let selected;
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE) || '[]');
+    selected = new Set(Array.isArray(saved) ? saved : []);
+  } catch (_) {
+    selected = new Set();
+  }
   let currentFiltered = DATA.slice();
   let socioMap = null;
   let socioLayer = null;
@@ -213,7 +219,7 @@
   function renderResults(){
     const body=document.getElementById('selResults'); if(!body) return;
     body.innerHTML='';
-    currentFiltered.slice().sort((a,b)=>a.numero-b.numero).forEach(d=>{
+    currentFiltered.forEach(d=>{
       const tr=document.createElement('tr'); if(selected.has(d.clave)) tr.classList.add('pre');
       tr.innerHTML=`<td><input type="checkbox" ${selected.has(d.clave)?'checked':''}></td>
       <td class="school">${esc(d.escuela)}</td><td>${esc(d.localidad)}</td><td style="text-align:right">${num(d.matricula)}</td><td>${esc(d.categoria)}</td><td>${esc(d.turnos)}</td><td style="text-align:center">${d.desfavorabilidad}</td>
