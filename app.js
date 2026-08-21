@@ -5,11 +5,16 @@
   const contextRows=(window.SELECTION_ROWS||[]).map(row=>Object.fromEntries(fields.map((field,index)=>[field,row[index]])));
   const nearestContext=school=>{let best=null,bestDistance=Infinity;contextRows.forEach(row=>{const distance=Math.hypot(Number(school.lat)-Number(row.lat),Number(school.lon)-Number(row.lon));if(distance<bestDistance){best=row;bestDistance=distance}});return bestDistance<.0002?best:null};
   const schools=(window.SCHOOLS_DATA||[]).filter(s=>Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))&&Number(s.lat)!==0&&Number(s.lon)!==0).map(s=>({...s,context:nearestContext(s)}));
-  const schoolNumber=school=>school.gestion==='Estatal'?(String(school.nombre).match(/N[°º]?\s*(\d+)/i)?.[1]||null):null;
+  const schoolLabel=school=>{if(school.gestion!=='Estatal')return null;const number=String(school.nombre).match(/N[°º]?\s*(\d+)/i)?.[1]||null;if(!number)return null;const provincialTechnical=school.modalidad==='Técnico Profesional'&&String(school.dependencia).includes('Provincial');return provincialTechnical?`ET${number}`:number};
 
   const tercilBuffer=value=>{const n=Number(value||0);return n===0?'Sin RENABAP':n<=1.88?'Bajo':n<16.07?'Medio':'Alto'};
   const tercilTrabajo=value=>value==null?'S/D':Number(value)<=.159?'Bajo':Number(value)<.2067?'Medio':'Alto';
+  const turnos=row=>{if(!row?.turnos)return['S/D'];const value=String(row.turnos).toUpperCase(),result=[];if(value.includes('MAÑANA'))result.push('Mañana');if(value.includes('TARDE'))result.push('Tarde');if(value.includes('NOCHE')||value.includes('VESPERTINO'))result.push('Noche / Vespertino');return result.length?result:['S/D']};
+  const schoolSize=school=>Number(school.matricula||0)<200?'Pequeña':Number(school.matricula||0)<500?'Intermedia':'Grande';
   const dimensions=[
+    {id:'turno',label:'Turno',values:['Mañana','Tarde','Noche / Vespertino','S/D'],get:(r)=>turnos(r)},
+    {id:'categoria',label:'Categoría',values:['Primera','Segunda','Tercera','S/D'],get:(r,s)=>['Primera','Segunda','Tercera'].includes(s.categoria)?s.categoria:'S/D'},
+    {id:'tamano',label:'Tamaño por matrícula',values:['Pequeña','Intermedia','Grande'],get:(r,s)=>schoolSize(s)},
     {id:'nbi',label:'NBI',values:['Bajo','Medio','Alto','S/D'],get:r=>r?.nbi||'S/D'},
     {id:'ivse',label:'IVSE',values:['Bajo','Medio','Alto','S/D'],get:r=>r?.ivseTercil||'S/D'},
     {id:'renabap',label:'RENABAP a 250 m',values:['Sin RENABAP','Bajo','Medio','Alto'],get:r=>r?tercilBuffer(r.pct_renabap):null},
@@ -22,10 +27,10 @@
   const map=L.map('map',{preferCanvas:true});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
   const renderer=L.canvas({padding:.25}), pointLayer=L.layerGroup().addTo(map), bounds=[];
-  const markers=schools.map(s=>{const coords=[Number(s.lat),Number(s.lon)], enrollment=Math.max(0,Number(s.matricula||0));bounds.push(coords);const marker=L.circleMarker(coords,{renderer,radius:Math.max(4,Math.min(18,3+Math.sqrt(enrollment)/2.7)),color:'#07111f',weight:1.25,fillColor:colors[s.gestion]||'#8da2b5',fillOpacity:.84});marker.bindPopup(`<div class="popup"><h2>${esc(s.nombre)}</h2><p>${esc(s.localidad)} · ${esc(s.gestion)}</p><p><strong>${format(enrollment)}</strong> estudiantes</p>${s.context?`<p>NBI ${esc(s.context.nbi||'S/D')} · IVSE ${esc(s.context.ivseTercil||'S/D')}</p>`:''}</div>`);const number=schoolNumber(s);if(number)marker.bindTooltip(number,{permanent:true,direction:'center',className:'school-number',opacity:1});return {school:s,marker}});
+  const markers=schools.map(s=>{const coords=[Number(s.lat),Number(s.lon)], enrollment=Math.max(0,Number(s.matricula||0));bounds.push(coords);const marker=L.circleMarker(coords,{renderer,radius:Math.max(4,Math.min(18,3+Math.sqrt(enrollment)/2.7)),color:'#07111f',weight:1.25,fillColor:colors[s.gestion]||'#8da2b5',fillOpacity:.84});marker.bindPopup(`<div class="popup"><h2>${esc(s.nombre)}</h2><p>${esc(s.localidad)} · ${esc(s.gestion)}</p><p><strong>${format(enrollment)}</strong> estudiantes · ${schoolSize(s)}</p>${s.context?`<p>${esc(s.context.turnos)} · Categoría ${esc(s.categoria)}</p><p>NBI ${esc(s.context.nbi||'S/D')} · IVSE ${esc(s.context.ivseTercil||'S/D')}</p>`:''}</div>`);const label=schoolLabel(s);if(label)marker.bindTooltip(label,{permanent:true,direction:'center',className:'school-number',opacity:1});return {school:s,marker}});
   if(bounds.length)map.fitBounds(bounds,{padding:[24,24],maxZoom:14,animate:false});
 
-  function matches(school){if(!activeManagement.has(school.gestion))return false;for(const dimension of dimensions){const selected=activeDimensions.get(dimension.id);if(selected.size&&!selected.has(dimension.get(school.context)))return false}return true}
+  function matches(school){if(!activeManagement.has(school.gestion))return false;for(const dimension of dimensions){const selected=activeDimensions.get(dimension.id),value=dimension.get(school.context,school);if(selected.size){const values=Array.isArray(value)?value:[value];if(!values.some(item=>selected.has(item)))return false}}return true}
   function refresh(){pointLayer.clearLayers();let count=0;markers.forEach(({school,marker})=>{if(matches(school)){marker.addTo(pointLayer);count++}});document.getElementById('visibleCount').textContent=count;document.getElementById('emptyMessage').style.display=count?'none':'block'}
   function button(label,value,className,onClick,active=false){const el=document.createElement('button');el.type='button';el.className=`filter-button ${className}${active?' active':''}`;el.textContent=label;el.dataset.value=value;el.addEventListener('click',()=>{onClick(el);refresh()});return el}
   const management=document.getElementById('managementFilters');['Estatal','Privada'].forEach(value=>management.appendChild(button(value,value,'management',el=>{activeManagement.has(value)?activeManagement.delete(value):activeManagement.add(value);el.classList.toggle('active',activeManagement.has(value))},true)));
