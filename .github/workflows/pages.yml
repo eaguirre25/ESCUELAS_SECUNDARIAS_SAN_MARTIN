@@ -36,6 +36,7 @@ jobs:
           cp data-patch.js table-enhancement.js sample-enhancement.js table-turnos.js _site/
           cp selection-data.js survey-selector.js sample-tabs.js _site/
           cat sample-tabs.js >> _site/sample-enhancement.js
+          sed -i 's#</body>#  <script src="data-patch.js"></script>\n  <script src="table-enhancement.js"></script>\n  <script src="sample-enhancement.js"></script>\n  <script src="table-turnos.js"></script>\n</body>#' _site/index.html
 
       - name: Subir artefacto
         uses: actions/upload-pages-artifact@v3
