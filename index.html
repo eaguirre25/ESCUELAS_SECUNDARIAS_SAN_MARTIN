@@ -52,9 +52,12 @@
         <div class="legend">
           <div class="legend-row"><span class="dot" style="background:var(--state)"></span>Gestión estatal</div>
           <div class="legend-row"><span class="dot" style="background:var(--private)"></span>Gestión privada</div>
-          <div class="legend-row"><span class="legend-category">1ª</span>Categoría: 1ª, 2ª, 3ª o S/D</div>
-          <div class="legend-row"><span class="legend-disadvantage">D1</span>Desfavorabilidad 1</div>
-          <p class="help">El tamaño de la burbuja representa la matrícula. Las etiquetas superpuestas indican categoría y desfavorabilidad.</p>
+          <label class="field-label">Indicadores opcionales</label>
+          <div class="check-panel">
+            <label class="check-option"><input id="showCategoryBadges" type="checkbox"> Categoría</label>
+            <label class="check-option"><input id="showDisadvantageBadges" type="checkbox"> Desfavorabilidad</label>
+          </div>
+          <p class="help">El tamaño de la burbuja representa la matrícula. Marcá un indicador para reflejarlo sobre el mapa; las etiquetas aparecen al acercar el zoom.</p>
         </div>
       </aside>
       <main id="map"></main>

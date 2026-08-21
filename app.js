@@ -106,11 +106,13 @@ function categoryAbbreviation(category) {
 }
 
 function mapBadge(school) {
-  const category = categoryAbbreviation(school.categoria);
-  const disadvantage = String(school.desfavorabilidad) === '1' ? '<span class="map-badge-disadvantage">D1</span>' : '';
+  const showCategory = document.getElementById('showCategoryBadges').checked;
+  const showDisadvantage = document.getElementById('showDisadvantageBadges').checked;
+  const category = showCategory ? `<span class="map-badge-category">${categoryAbbreviation(school.categoria)}</span>` : '';
+  const disadvantage = showDisadvantage && String(school.desfavorabilidad) === '1' ? '<span class="map-badge-disadvantage">D1</span>' : '';
   return L.divIcon({
     className: 'map-badge-wrapper',
-    html: `<span class="map-badge-category">${category}</span>${disadvantage}`,
+    html: `${category}${disadvantage}`,
     iconSize: [42, 18],
     iconAnchor: [-4, 18]
   });
@@ -118,9 +120,13 @@ function mapBadge(school) {
 
 function renderMapBadges() {
   badgeLayer.clearLayers();
+  const showCategory = document.getElementById('showCategoryBadges').checked;
+  const showDisadvantage = document.getElementById('showDisadvantageBadges').checked;
+  if (!showCategory && !showDisadvantage) return;
   if (map.getZoom() < 14) return;
   visibleMapItems.forEach(school => {
     if (!validCoordinates(school)) return;
+    if (!showCategory && showDisadvantage && String(school.desfavorabilidad) !== '1') return;
     L.marker([Number(school.lat), Number(school.lon)], {
       icon: mapBadge(school),
       interactive: false,
@@ -179,6 +185,9 @@ function renderMap(override = null) {
 }
 
 map.on('zoomend', renderMapBadges);
+['showCategoryBadges', 'showDisadvantageBadges'].forEach(id => {
+  document.getElementById(id).addEventListener('change', renderMapBadges);
+});
 
 populateLocalities();
 renderMap();
@@ -203,6 +212,8 @@ document.getElementById('resetMap').addEventListener('click', () => {
   document.getElementById('modalidad').value = '';
   document.getElementById('showState').checked = true;
   document.getElementById('showPrivate').checked = true;
+  document.getElementById('showCategoryBadges').checked = false;
+  document.getElementById('showDisadvantageBadges').checked = false;
   renderMap();
   fitItems(schools);
 });
