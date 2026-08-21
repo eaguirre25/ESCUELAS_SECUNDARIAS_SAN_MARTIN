@@ -83,3 +83,16 @@
   const tbody = document.querySelector('#editTable tbody');
   if (tbody) new MutationObserver(enhance).observe(tbody, { childList: true, subtree: false });
 })();
+
+(() => {
+  if (document.querySelector('script[data-survey-selector-loader]')) return;
+  const dataScript = document.createElement('script');
+  dataScript.src = 'selection-data.js';
+  dataScript.dataset.surveySelectorLoader = '1';
+  dataScript.onload = () => {
+    const selectorScript = document.createElement('script');
+    selectorScript.src = 'survey-selector.js';
+    document.body.appendChild(selectorScript);
+  };
+  document.body.appendChild(dataScript);
+})();
