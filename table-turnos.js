@@ -86,10 +86,34 @@
 
 (() => {
   if (document.querySelector('script[data-survey-selector-loader]')) return;
+
+  const numero = nombre => {
+    const t = String(nombre || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const m = t.match(/(?:ESCUELA DE EDUCACION SECUNDARIA|ES)\s*N?[º°]?\s*(\d+)/i);
+    return m ? Number(m[1]) : null;
+  };
+
+  const completarMatriculas = () => {
+    if (!Array.isArray(window.SELECTION_ROWS)) return;
+    const base = (() => { try { return Array.isArray(schools) ? schools : []; } catch (_) { return []; } })();
+    window.SELECTION_ROWS.forEach(row => {
+      if (Number(row[7]) > 0) return;
+      const n = numero(row[1]);
+      const match = base.find(s => numero(s.nombre) === n && String(s.gestion || '').toLowerCase() === 'estatal' && Number(s.matricula) > 0);
+      if (match) {
+        row[7] = Number(match.matricula);
+        if (!(Number(row[6]) > 0) && Number(match.secciones) > 0) row[6] = Number(match.secciones);
+      } else {
+        row[7] = null;
+      }
+    });
+  };
+
   const dataScript = document.createElement('script');
   dataScript.src = 'selection-data.js';
   dataScript.dataset.surveySelectorLoader = '1';
   dataScript.onload = () => {
+    completarMatriculas();
     const selectorScript = document.createElement('script');
     selectorScript.src = 'survey-selector.js';
     document.body.appendChild(selectorScript);
