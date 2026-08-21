@@ -35,6 +35,7 @@ jobs:
           cp index.html app.js schools-data.js _site/
           cp data-patch.js table-enhancement.js sample-enhancement.js table-turnos.js _site/
           cp selection-data.js survey-selector.js sample-tabs.js _site/
+          cat sample-tabs.js >> _site/sample-enhancement.js
 
       - name: Subir artefacto
         uses: actions/upload-pages-artifact@v3
