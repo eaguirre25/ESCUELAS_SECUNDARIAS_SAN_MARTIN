@@ -6,113 +6,26 @@
   <title>Escuelas secundarias · General San Martín</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
-    :root{--bg:#07111f;--panel:#0d1b2a;--panel2:#10243a;--text:#eef6ff;--muted:#9fb4c8;--line:#263e55;--state:#48cae4;--private:#ef709d;--accent:#ffd166;--ok:#52b788}
-    *{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}body{overflow:hidden}
-    .shell{height:100%;display:grid;grid-template-rows:auto 1fr}.topbar{background:#091827;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.brand{min-width:280px;flex:1}.brand h1{font-size:18px;margin:0 0 3px}.brand p{font-size:11.5px;color:var(--muted);margin:0}.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabbtn,.button{border:1px solid var(--line);background:#0b1b2c;color:var(--text);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:12px}.tabbtn.active{background:var(--state);color:#041018;border-color:var(--state);font-weight:700}.view{display:none;height:100%;min-height:0}.view.active{display:block}
-    #mapView.active{display:grid;grid-template-columns:335px 1fr}.sidebar{background:linear-gradient(180deg,#091827,#07111f);border-right:1px solid var(--line);padding:14px;overflow:auto}.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.stat{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:9px}.stat b{font-size:18px;display:block}.stat span{font-size:10.5px;color:var(--muted)}
-    label.field-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin:10px 0 5px}input,select{border:1px solid var(--line);background:#0b1b2c;color:var(--text);border-radius:9px;padding:9px 10px;font-size:12px;outline:none;width:100%}button:hover{filter:brightness(1.12)}.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-    .check-panel{display:grid;grid-template-columns:1fr 1fr;gap:7px}.check-option{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;background:#0b1b2c;padding:8px 9px;font-size:11.5px;cursor:pointer}.check-option input{width:auto;margin:0;accent-color:var(--state)}.check-option.private input{accent-color:var(--private)}
-    .legend{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.legend-row{display:flex;align-items:center;gap:8px;font-size:11.5px;margin:6px 0}.dot{width:11px;height:11px;border-radius:50%;display:inline-block}.legend-category,.legend-disadvantage{min-width:23px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#07111f}.legend-category{background:#fff}.legend-disadvantage{background:#ff9f1c}.help{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:10px}#map{height:100%;width:100%;background:#dbe7ef}.map-badge-wrapper{background:transparent;border:0;display:flex;align-items:center;gap:2px;white-space:nowrap}.map-badge-category,.map-badge-disadvantage{height:17px;min-width:20px;padding:0 4px;border:2px solid #07111f;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;line-height:1;color:#07111f;box-shadow:0 1px 3px #0008}.map-badge-category{background:#fff}.map-badge-disadvantage{background:#ff9f1c}
-    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0d1b2a;color:#eef6ff}.leaflet-popup-content{margin:12px 14px;min-width:260px}.pop-title{font-weight:800;font-size:14px;line-height:1.25;margin-bottom:7px}.pop-sub{color:#b8cadd;font-size:12px;margin-bottom:8px}.tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}.tag{border:1px solid var(--line);border-radius:999px;padding:3px 7px;font-size:9.5px}.tag.state{border-color:var(--state);color:var(--state)}.tag.private{border-color:var(--private);color:var(--private)}.tag.disadvantage{border-color:#ff9f1c;color:#ffb449}.pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.pop-kpi{background:#10243a;border-radius:8px;padding:7px}.pop-kpi b{font-size:15px;display:block}.pop-kpi span{font-size:10px;color:#9fb4c8;text-transform:uppercase}.cue{font-size:10px;color:#8aa3b8;margin-top:8px}
-    .table-pane{height:100%;display:grid;grid-template-rows:auto 1fr;min-height:0;background:#081421}.toolbar{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#0b1928}.toolbar .grow{flex:1;min-width:220px}.toolbar select{width:auto;min-width:135px}.notice{font-size:11px;color:var(--muted)}.table-wrap{overflow:auto;height:100%;position:relative}table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:11.5px}th,td{border-right:1px solid #20364a;border-bottom:1px solid #20364a;padding:7px 8px;background:#0a1725;white-space:nowrap;min-width:92px}th{position:sticky;top:0;z-index:5;background:#10243a;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#c8d9e8}th.sortable{cursor:pointer;padding-right:20px}th.sortable::after{content:'↕';position:absolute;right:7px;color:#6f8ca5}th.sort-active::after{content:'▲';color:var(--accent)}th.sort-active[data-direction="desc"]::after{content:'▼'}th.namecol,td.namecol{position:sticky;left:0;z-index:4;min-width:330px;max-width:330px;white-space:normal;background:#0d1d2d}th.namecol{z-index:7;background:#17314a}td.namecol{font-weight:700}.readonly{color:#91a8bc}td[contenteditable="true"]{background:#0c1b2b;outline:none}td[contenteditable="true"]:focus{box-shadow:inset 0 0 0 2px var(--state);background:#10263b}td.edited{background:#133148}
-    .sample-layout{height:100%;display:grid;grid-template-rows:auto 1fr;min-height:0;background:#081421}.sample-toolbar{padding:10px 12px;background:#0b1928;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sample-toolbar .search{flex:1;min-width:220px}.percent-box{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 8px}.percent-box label{font-size:11px;color:var(--muted);white-space:nowrap}.percent-box input{width:76px;text-align:right;font-weight:800;color:var(--accent)}.sample-grid{min-height:0;display:grid;grid-template-columns:minmax(390px,1fr) minmax(390px,1fr) 330px}.management-list{min-height:0;display:grid;grid-template-rows:auto auto 1fr;border-right:1px solid var(--line)}.management-title{padding:11px 12px 7px;display:flex;justify-content:space-between;align-items:center}.management-title h2{font-size:14px;margin:0}.management-title .count{font-size:10px;color:var(--muted)}.management-title.state{border-top:3px solid var(--state)}.management-title.private{border-top:3px solid var(--private)}.list-actions{padding:0 12px 9px;display:flex;gap:6px}.list-actions button{padding:6px 8px}.rows{overflow:auto;padding:0 8px 8px}.sample-head,.sample-row{display:grid;grid-template-columns:24px minmax(150px,1fr) 62px 66px 72px;gap:7px;align-items:center}.sample-head{position:sticky;top:0;z-index:2;background:#0b1928;color:var(--muted);font-size:9px;text-transform:uppercase;padding:6px 8px}.sort-button{border:0;background:transparent;color:var(--muted);padding:2px 0;display:flex;align-items:center;justify-content:flex-end;gap:3px;font:inherit;text-transform:inherit;cursor:pointer;text-align:right}.sort-button:nth-child(2){justify-content:flex-start;text-align:left}.sort-button span{font-size:7px}.sort-button.active{color:var(--accent);font-weight:800}.sample-row{padding:8px;border-bottom:1px solid #1d3246;border-radius:7px}.sample-row:hover,.sample-row.selected{background:#0d2438}.sample-row input{width:auto}.sample-name{font-size:11px;font-weight:650;line-height:1.25}.sample-meta{font-size:9.5px;color:var(--muted);margin-top:2px}.enrollment,.enrollment-share,.auto-sample{font-size:11px;font-weight:700;text-align:right}.enrollment-share{color:#c8d9e8}.auto-sample{color:var(--accent)}
-    .summary-pane{overflow:auto;padding:14px}.summary-pane h2{font-size:14px;margin:0 0 10px}.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px}.metric.wide{grid-column:1/-1}.metric .v{font-size:22px;font-weight:800}.metric .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.summary-group{border-top:1px solid var(--line);margin-top:14px;padding-top:11px}.summary-group h3{font-size:11px;margin:0 0 8px}.summary-line{display:flex;justify-content:space-between;gap:10px;font-size:10.5px;margin:6px 0}.bar{height:10px;background:#0d2438;border:1px solid #29465f;border-radius:999px;overflow:hidden}.bar div{height:100%;background:var(--accent);width:0}.warning{background:#2a2210;border:1px solid #5f5023;border-radius:10px;padding:9px;font-size:10.5px;color:#e4d9a7;margin-top:12px;line-height:1.4}
-    @media(max-width:1050px){body{overflow:auto}.shell{height:auto;min-height:100vh}#mapView.active{grid-template-columns:300px 1fr;height:calc(100vh - 75px)}.sample-layout{min-height:900px}.sample-grid{grid-template-columns:1fr 1fr}.summary-pane{grid-column:1/-1}.management-list{min-height:520px}.topbar{position:sticky;top:0;z-index:2000}}
-    @media(max-width:760px){#mapView.active{grid-template-columns:1fr;grid-template-rows:auto 62vh;height:auto}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.sample-grid{grid-template-columns:1fr}.management-list{border-right:0;border-bottom:1px solid var(--line)}.summary-pane{grid-column:auto}th.namecol,td.namecol{min-width:230px;max-width:230px}}
+    :root{--bg:#07111f;--panel:#0d1b2a;--text:#eef6ff;--muted:#9fb4c8;--line:#263e55;--state:#28b9d6;--private:#e95f8d}
+    *{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    body{display:grid;grid-template-rows:auto 1fr;overflow:hidden}header{display:flex;align-items:center;gap:24px;padding:12px 16px;background:#091827;border-bottom:1px solid var(--line);z-index:1000}
+    .title{flex:1;min-width:0}.title h1{font-size:18px;margin:0 0 3px}.title p{font-size:11.5px;color:var(--muted);margin:0}
+    .summary{display:flex;gap:18px;align-items:center}.summary div{white-space:nowrap}.summary b{font-size:16px}.summary span{font-size:10px;color:var(--muted);margin-left:4px}
+    .legend{display:flex;gap:14px;align-items:center;font-size:11px;color:#c8d9e8;white-space:nowrap}.legend-item{display:flex;align-items:center;gap:6px}.dot{width:11px;height:11px;border-radius:50%}
+    #map{width:100%;height:100%;background:#dbe7ef}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--text)}
+    .popup h2{font-size:14px;line-height:1.3;margin:0 0 5px}.popup p{font-size:11px;color:#b8cadd;margin:3px 0}.popup strong{color:var(--text)}
+    @media(max-width:850px){header{align-items:flex-start;flex-wrap:wrap;gap:8px 16px}.title{flex-basis:100%}.summary{flex:1}.legend{flex-wrap:wrap}body{grid-template-rows:auto minmax(60vh,1fr)}}
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand"><h1>Escuelas secundarias · General San Martín</h1><p>Gestión estatal y privada · educación común y técnico-profesional · Anual 2026</p></div>
-      <nav class="tabs" aria-label="Secciones">
-        <button class="tabbtn active" data-view="mapView">Mapa</button>
-        <button class="tabbtn" data-view="tableView">Tabla editable</button>
-        <button class="tabbtn" data-view="sampleView">Proyectar muestra</button>
-      </nav>
-    </header>
-
-    <section id="mapView" class="view active">
-      <aside class="sidebar">
-        <div class="stats">
-          <div class="stat"><b id="countSchools">0</b><span>escuelas visibles</span></div>
-          <div class="stat"><b id="countStudents">0</b><span>matrícula visible</span></div>
-          <div class="stat"><b id="countState">0</b><span>estatales visibles</span></div>
-          <div class="stat"><b id="countPrivate">0</b><span>privadas visibles</span></div>
-        </div>
-        <label class="field-label">Tipo de gestión</label>
-        <div class="check-panel">
-          <label class="check-option"><input id="showState" type="checkbox" checked> Estatales</label>
-          <label class="check-option private"><input id="showPrivate" type="checkbox" checked> Privadas</label>
-        </div>
-        <label class="field-label" for="searchMap">Buscar</label><input id="searchMap" type="search" placeholder="Escuela, CUE o localidad">
-        <label class="field-label" for="localidad">Localidad</label><select id="localidad"><option value="">Todas</option></select>
-        <label class="field-label" for="modalidad">Modalidad</label><select id="modalidad"><option value="">Todas</option><option>Común</option><option>Técnico Profesional</option></select>
-        <div class="btn-row"><button class="button" id="resetMap">Restablecer</button><button class="button" id="sampleOnMap">Ver muestra</button></div>
-        <div class="legend">
-          <div class="legend-row"><span class="dot" style="background:var(--state)"></span>Gestión estatal</div>
-          <div class="legend-row"><span class="dot" style="background:var(--private)"></span>Gestión privada</div>
-          <label class="field-label">Indicadores opcionales</label>
-          <div class="check-panel">
-            <label class="check-option"><input id="showCategoryBadges" type="checkbox"> Categoría</label>
-            <label class="check-option"><input id="showDisadvantageBadges" type="checkbox"> Desfavorabilidad</label>
-          </div>
-          <p class="help">El tamaño de la burbuja representa la matrícula. Marcá un indicador para reflejarlo sobre el mapa; las etiquetas aparecen al acercar el zoom.</p>
-        </div>
-      </aside>
-      <main id="map"></main>
-    </section>
-
-    <section id="tableView" class="view">
-      <div class="table-pane">
-        <div class="toolbar">
-          <input id="searchTable" class="grow" type="search" placeholder="Buscar en la tabla…">
-          <select id="tableManagement"><option value="">Todas las gestiones</option><option>Estatal</option><option>Privada</option></select>
-          <select id="tableModality"><option value="">Todas las modalidades</option><option>Común</option><option>Técnico Profesional</option></select>
-          <button class="button" id="exportCsv">Descargar CSV</button><button class="button" id="resetEdits">Descartar cambios locales</button>
-        </div>
-        <div class="table-wrap"><table id="editTable"><thead><tr><th class="namecol">Escuela</th><th>CUE</th><th>Gestión</th><th>Modalidad</th><th>Localidad</th><th>Calle</th><th>Nº</th><th>Categoría</th><th>Subvención</th><th>Secciones</th><th>Matrícula</th><th>Varones</th><th>Mujeres</th><th>Período</th><th>Latitud</th><th>Longitud</th></tr></thead><tbody></tbody></table></div>
-      </div>
-    </section>
-
-    <section id="sampleView" class="view">
-      <div class="sample-layout">
-        <div class="sample-toolbar">
-          <input id="searchSample" class="search" type="search" placeholder="Buscar escuela, CUE o localidad…">
-          <div class="percent-box"><label for="samplePercent">% de matrícula por escuela</label><input id="samplePercent" type="text" inputmode="decimal" value="10%"></div>
-          <span class="notice">El resultado se redondea al estudiante entero más cercano.</span>
-        </div>
-        <div class="sample-grid">
-          <section class="management-list">
-            <div class="management-title state"><h2>Gestión estatal</h2><span class="count" id="stateUniverse"></span></div>
-            <div class="list-actions"><button class="button" data-select="Estatal">Seleccionar visibles</button><button class="button" data-clear="Estatal">Vaciar estatales</button></div>
-            <div class="rows" id="stateRows"></div>
-          </section>
-          <section class="management-list">
-            <div class="management-title private"><h2>Gestión privada</h2><span class="count" id="privateUniverse"></span></div>
-            <div class="list-actions"><button class="button" data-select="Privada">Seleccionar visibles</button><button class="button" data-clear="Privada">Vaciar privadas</button></div>
-            <div class="rows" id="privateRows"></div>
-          </section>
-          <aside class="summary-pane">
-            <h2>Resumen de la muestra</h2>
-            <div class="metric-grid">
-              <div class="metric"><div class="v" id="sampleSchools">0</div><div class="l">Escuelas seleccionadas</div></div>
-              <div class="metric"><div class="v" id="sampleStudents">0</div><div class="l">Estudiantes a encuestar</div></div>
-              <div class="metric wide"><div class="v" id="sampleEnrollment">0</div><div class="l">Matrícula representada</div></div>
-            </div>
-            <div class="summary-group"><h3>Gestión estatal</h3><div class="summary-line"><span>Escuelas</span><strong id="stateSelected">0</strong></div><div class="summary-line"><span>Matrícula representada</span><strong id="stateEnrollment">0</strong></div><div class="summary-line"><span>A encuestar</span><strong id="stateSample">0</strong></div></div>
-            <div class="summary-group"><h3>Gestión privada</h3><div class="summary-line"><span>Escuelas</span><strong id="privateSelected">0</strong></div><div class="summary-line"><span>Matrícula representada</span><strong id="privateEnrollment">0</strong></div><div class="summary-line"><span>A encuestar</span><strong id="privateSample">0</strong></div></div>
-            <div class="summary-group"><div class="summary-line"><span>Cobertura de matrícula</span><strong id="coverageText">0%</strong></div><div class="bar"><div id="coverageBar"></div></div></div>
-            <div class="warning">El porcentaje se aplica individualmente a la matrícula de cada escuela seleccionada. Los registros con matrícula 0 provienen así de la fuente y generan una muestra de 0.</div>
-          </aside>
-        </div>
-      </div>
-    </section>
-  </div>
+  <header>
+    <div class="title"><h1>Escuelas secundarias · General San Martín</h1><p>El tamaño representa la matrícula; el color, el tipo de gestión.</p></div>
+    <div class="summary" aria-label="Resumen"><div><b id="schoolCount">0</b><span>escuelas</span></div><div><b id="enrollmentCount">0</b><span>estudiantes</span></div></div>
+    <div class="legend" aria-label="Referencias"><div class="legend-item"><span class="dot" style="background:var(--state)"></span>Estatal</div><div class="legend-item"><span class="dot" style="background:var(--private)"></span>Privada</div></div>
+  </header>
+  <main id="map" aria-label="Mapa de escuelas secundarias"></main>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="schools-data.js"></script>
   <script src="app.js"></script>
-  <script src="selection-data.js"></script>
-  <script src="survey-selector.js"></script>
 </body>
 </html>
