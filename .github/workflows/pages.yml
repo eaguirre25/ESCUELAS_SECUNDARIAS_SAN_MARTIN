@@ -33,10 +33,11 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html app.js schools-data.js _site/
-          cp data-patch.js table-enhancement.js sample-enhancement.js table-turnos.js labels-patch.js sample-selector-unify.js _site/
+          cp data-patch.js table-enhancement.js sample-enhancement.js table-turnos.js labels-patch.js sample-selector-unify.js map-enhancement.js _site/
           cp selection-data.js survey-selector.js sample-tabs.js _site/
+          cp -r data _site/
           cat sample-tabs.js >> _site/sample-enhancement.js
-          sed -i 's#</body>#  <script src="data-patch.js"></script>\n  <script src="table-enhancement.js"></script>\n  <script src="sample-enhancement.js"></script>\n  <script src="table-turnos.js"></script>\n  <script src="labels-patch.js"></script>\n  <script src="sample-selector-unify.js"></script>\n</body>#' _site/index.html
+          sed -i 's#</body>#  <script src="data-patch.js"></script>\n  <script src="table-enhancement.js"></script>\n  <script src="sample-enhancement.js"></script>\n  <script src="table-turnos.js"></script>\n  <script src="labels-patch.js"></script>\n  <script src="sample-selector-unify.js"></script>\n  <script src="map-enhancement.js"></script>\n</body>#' _site/index.html
 
       - name: Subir artefacto
         uses: actions/upload-pages-artifact@v3
