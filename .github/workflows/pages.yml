@@ -32,7 +32,7 @@ jobs:
       - name: Preparar sitio
         run: |
           mkdir -p _site
-          cp index.html app.js schools-data.js matrix-data.js _site/
+          cp index.html app.js schools-data.js matrix-data.js private-matrix-data.js _site/
           cp -r data _site/
 
       - name: Subir artefacto
